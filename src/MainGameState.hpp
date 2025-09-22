@@ -17,5 +17,12 @@ class MainGameState : public GameState
 
     
     private:
+        struct Bird {
+            float x;
+            float y;
+            float vy;
+        };
+        Bird player;
         char entered_key;
+        
 };

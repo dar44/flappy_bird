@@ -14,10 +14,12 @@ int main()
     state_machine.add_state(std::make_unique<MainGameState>(), false);
     state_machine.handle_state_changes(delta_time);
 
-    InitWindow(288, 512, "FLAPPY BIRD DCA PO");
+    InitWindow(288, 512, "FLAPPY BIRD DCA ");
 
     while (!state_machine.is_game_ending())
     {
+        delta_time = GetFrameTime();
+
         state_machine.handle_state_changes(delta_time);
         state_machine.getCurrentState()->handleInput();
         state_machine.getCurrentState()->update(delta_time);
