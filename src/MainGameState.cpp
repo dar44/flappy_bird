@@ -6,6 +6,16 @@ extern "C" {
 
 MainGameState::MainGameState()
 {
+    //1
+    player = {200.0f, 200.0f, 0.0f};
+    entered_key = 0;
+
+    //EJ 2
+    PIPE_W = 32;
+    PIPE_H = 320;
+    spawnTimer = 0.0f;
+    spawnEvery = 1.5f; //ARBITRARIO
+
 }
 
 void MainGameState::init()
@@ -14,6 +24,10 @@ void MainGameState::init()
     player.y = 200.0f;
     player.vy = 0.0f; 
     entered_key = 0;
+
+    //EJ2
+    pipes.clear();
+    spawnTimer = 0.0f;
 
 }
 
@@ -29,10 +43,51 @@ void MainGameState::handleInput()
 
 void MainGameState::update(float deltaTime)
 {
+    //fisica del pajaro ej 1
     const float gravedad = 900.0f;
     player.vy += gravedad * deltaTime;
     player.y  += player.vy * deltaTime;
     player.vy = 0.0f;
+
+    //tuberias ej 2
+    spawnTimer += deltaTime;
+    if (spawnTimer >= spawnEvery) {
+        spawnTimer = 0.0f;
+
+        int pipe_y_offset_top = GetRandomValue(PIPE_H / 2, GetScreenHeight() / 2);
+
+        float startX = static_cast<float>(GetScreenWidth());
+
+        Rectangle topPipe = {
+            startX,
+            -static_cast<float>(pipe_y_offset_top),
+            static_cast<float>(PIPE_W),
+            static_cast<float>(PIPE_H)
+        };
+
+        int valorRandom = GetRandomValue(PIPE_H / 2, GetScreenHeight() / 2);
+        Rectangle botPipe = {
+            startX,
+            static_cast<float>((PIPE_H - pipe_y_offset_top) + valorRandom),
+            static_cast<float>(PIPE_W),
+            static_cast<float>(PIPE_H)
+        };
+
+        //Inserta tu nuevo objeto en la cola.
+        pipes.push_back(PipePair{topPipe, botPipe, false});
+
+        //mover tuberias en cola
+        for (size_t i = 0; i < pipes.size(); i++) {
+            pipes[i].top.x -= PIPE_SPEED * deltaTime;
+            pipes[i].bot.x -= PIPE_SPEED * deltaTime;
+        }
+
+        //eliminar si está fuera de los limites
+        while (!pipes.empty() && (pipes.front().top.x + PIPE_W) < 0.0f) 
+            pipes.pop_front();
+
+
+    }
 
 
 }
@@ -41,9 +96,19 @@ void MainGameState::render()
 {
     BeginDrawing();
     ClearBackground(RAYWHITE);
+    //ej0
     DrawText("Bienvenido a Flappy Bird DCA", 20, 20, 20, BLACK);//EJ 0
     
+    
     DrawCircle((int)player.x, (int)player.y, 17.0f, RED);//EJ 1
+    
+    // Ej2
+    for (size_t i = 0; i < pipes.size(); i++) {
+        DrawRectangleRec(pipes[i].top, GREEN);
+        DrawRectangleRec(pipes[i].bot, GREEN);
+    }
+
+    
     EndDrawing();
     
 
