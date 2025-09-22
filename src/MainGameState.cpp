@@ -3,6 +3,8 @@
 extern "C" {
     #include <raylib.h>
 }
+#include <StateMachine.hpp> 
+#include <GameOverState.hpp>
 
 MainGameState::MainGameState()
 {
@@ -86,10 +88,36 @@ void MainGameState::update(float deltaTime)
         while (!pipes.empty() && (pipes.front().top.x + PIPE_W) < 0.0f) 
             pipes.pop_front();
 
+        // Ej.3: colisiones y límites
+        const float BIRD_RADIUS = 17.0f;
+        Rectangle playerBB = {
+            player.x - BIRD_RADIUS,
+            player.y - BIRD_RADIUS,
+            BIRD_RADIUS,
+            BIRD_RADIUS
+        };
+
+        // Salirse de la pantalla
+        if (player.x - BIRD_RADIUS < 0.0f ||
+            player.x + BIRD_RADIUS > GetScreenWidth() ||
+            player.y - BIRD_RADIUS < 0.0f ||
+            player.y + BIRD_RADIUS > GetScreenHeight())
+        {
+            this->state_machine->add_state(std::make_unique<GameOverState>(), true);
+            return;
+        }
+
+        // Choque con cualquier tubería 
+        for (size_t i = 0; i < pipes.size(); i++) {
+            if (CheckCollisionRecs(playerBB, pipes[i].top) ||
+                CheckCollisionRecs(playerBB, pipes[i].bot))
+            {
+                this->state_machine->add_state(std::make_unique<GameOverState>(), true);
+                return;
+            }
+        }
 
     }
-
-
 }
 
 void MainGameState::render()
@@ -108,7 +136,7 @@ void MainGameState::render()
         DrawRectangleRec(pipes[i].bot, GREEN);
     }
 
-    
+
     EndDrawing();
     
 
