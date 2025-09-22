@@ -2,6 +2,9 @@
 #include <MainGameState.hpp>
 #include <memory>
 #include <chrono>
+extern "C" {
+    #include <raylib.h>
+}
 
 int main()
 { 
@@ -11,6 +14,8 @@ int main()
     state_machine.add_state(std::make_unique<MainGameState>(), false);
     state_machine.handle_state_changes(delta_time);
 
+    InitWindow(288, 512, "FLAPPY BIRD DCA PO");
+
     while (!state_machine.is_game_ending())
     {
         state_machine.handle_state_changes(delta_time);
@@ -19,5 +24,6 @@ int main()
         state_machine.getCurrentState()->render();       
     }
 
+    CloseWindow();
     return 0;
 }
