@@ -25,6 +25,9 @@ class MainGameState : public GameState
             float x;
             float y;
             float vy;
+            //ej5
+            float width;
+            float height;
         };
         Bird player;
         char entered_key;
@@ -33,17 +36,19 @@ class MainGameState : public GameState
         struct PipePair { Rectangle top, bot; bool scored = false; };
         std::deque<PipePair> pipes;
 
-        const float PIPE_SPEED = 110.0f;
+        float PIPE_SPEED; //EJ5 lo cambio a variable por enunciado
 
         float spawnTimer;
         float spawnEvery;
-
         int PIPE_W;
         int PIPE_H;
+        float pipeGap; //EJ5
+    
 
         //EJ 4
         int score;
-
-
         
+        //EJ 5 SPRTES
+        Texture2D birdSprite;
+        Texture2D pipeSprite;
 };

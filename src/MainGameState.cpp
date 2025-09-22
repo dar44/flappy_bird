@@ -9,16 +9,20 @@ extern "C" {
 MainGameState::MainGameState()
 {
     //1
-    player = {200.0f, 200.0f, 0.0f};
+    player = {200.0f, 200.0f };
     entered_key = 0;
 
     //EJ 2
     PIPE_W = 32;
     PIPE_H = 320;
+    PIPE_SPEED = 110.0f; //EJ5 lo cambio a variable por enunciado
     spawnTimer = 0.0f;
     spawnEvery = 0.8f; //ARBITRARIO
 
     score = 0;
+
+    //EJ5
+    pipeGap = 0.0f;//en init() lo inicializo
 
 }
 
@@ -28,6 +32,18 @@ void MainGameState::init()
     player.y = 200.0f;
     player.vy = 0.0f; 
     entered_key = 0;
+
+    // Ej5 cargo sprites
+    birdSprite = LoadTexture("assets/yellowbird-midflap.png");
+    pipeSprite = LoadTexture("assets/pipe-green.png");
+
+    player.width  = static_cast<float>(birdSprite.width);
+    player.height = static_cast<float>(birdSprite.height);
+
+    PIPE_W = pipeSprite.width;
+    PIPE_H = pipeSprite.height;
+
+    pipeGap = player.height * 4.5f; 
 
     //EJ2
     pipes.clear();
@@ -60,26 +76,24 @@ void MainGameState::update(float deltaTime)
     if (spawnTimer >= spawnEvery) {
         spawnTimer = 0.0f;
 
-        int pipe_y_offset_top = GetRandomValue(PIPE_H / 2, GetScreenHeight() / 2);
-
+        int offsetTop = GetRandomValue(PIPE_H / 2, GetScreenHeight() / 2);
         float startX = static_cast<float>(GetScreenWidth());
 
         Rectangle topPipe =   {
             startX,
-            -static_cast<float>(pipe_y_offset_top),
+            -static_cast<float>(offsetTop),
             static_cast<float>(PIPE_W),
             static_cast<float>(PIPE_H)
         };
 
-        int valorRandom = GetRandomValue(PIPE_H / 2, GetScreenHeight() / 2);
         Rectangle botPipe = {
             startX,
-            static_cast<float>((PIPE_H - pipe_y_offset_top) + valorRandom),
+            topPipe.y + static_cast<float>(PIPE_H) + pipeGap, //cambio ej5
             static_cast<float>(PIPE_W),
             static_cast<float>(PIPE_H)
         };
 
-        //Inserta tu nuevo objeto en la cola.
+        //nuevo obj en cola
         pipes.push_back(PipePair{topPipe, botPipe, false});
     }
 
@@ -93,7 +107,15 @@ void MainGameState::update(float deltaTime)
     while(!pipes.empty() && (pipes.front().top.x + PIPE_W) < 0.0f) 
         pipes.pop_front();
 
-    // Ej.3: colisiones y límites
+    // Ej5 centro en x,y y bounding box segunn el sprite
+    Rectangle playerBB = {
+        player.x - player.width  / 2.0f,
+        player.y - player.height / 2.0f,
+        player.width,
+        player.height
+    };
+
+    /* Ej.3: colisiones y límites
     const float BIRD_RADIUS = 17.0f;
     Rectangle playerBB = {
         player.x - BIRD_RADIUS,
@@ -101,10 +123,10 @@ void MainGameState::update(float deltaTime)
         BIRD_RADIUS,
         BIRD_RADIUS
     };
+    */
 
-    // Salirse de la pantalla
-    if(player.x - BIRD_RADIUS < 0.0f || player.x + BIRD_RADIUS > GetScreenWidth() ||
-        player.y - BIRD_RADIUS < 0.0f || player.y + BIRD_RADIUS > GetScreenHeight()) {
+    if(player.x - player.width /2.0f < 0.0f || player.x + player.width /2.0f > GetScreenWidth() ||
+        player.y - player.height/2.0f < 0.0f ||player.y + player.height/2.0f > GetScreenHeight()) {
         this->state_machine->add_state(std::make_unique<GameOverState>(score), true);
         return;
     }
@@ -134,13 +156,22 @@ void MainGameState::render()
     //ej0
     DrawText("Flappy Bird DCA", 20, 20, 20, BLACK);//EJ 0
     
+    // Ej5: sprite del pájaro (centrado en x,y)
+    DrawTexture(birdSprite, static_cast<int>(player.x - player.width  / 2.0f), static_cast<int>(player.y - player.height / 2.0f), WHITE);
+
+    // EJ 3
+    //DrawCircle((int)player.x, (int)player.y, 17.0f, RED);//EJ 1
     
-    DrawCircle((int)player.x, (int)player.y, 17.0f, RED);//EJ 1
-    
-    // Ej2
+    /* Ej2
     for (size_t i = 0; i < pipes.size(); i++) {
         DrawRectangleRec(pipes[i].top, GREEN);
         DrawRectangleRec(pipes[i].bot, GREEN);
+    }
+    */
+    // Ej5: sprites de las tuberías
+    for(size_t i = 0; i < pipes.size(); i++) {
+        DrawTextureEx(this->pipeSprite, {pipes[i].top.x + PIPE_W, pipes[i].top.y + PIPE_H}, 180.f, 1.0f, WHITE);
+        DrawTextureEx(this->pipeSprite, {pipes[i].bot.x , pipes[i].bot.y}, 0.f, 1.0f, WHITE);
     }
 
     // Ej4
