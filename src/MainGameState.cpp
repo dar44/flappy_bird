@@ -16,7 +16,9 @@ MainGameState::MainGameState()
     PIPE_W = 32;
     PIPE_H = 320;
     spawnTimer = 0.0f;
-    spawnEvery = 1.5f; //ARBITRARIO
+    spawnEvery = 0.8f; //ARBITRARIO
+
+    score = 0;
 
 }
 
@@ -30,6 +32,8 @@ void MainGameState::init()
     //EJ2
     pipes.clear();
     spawnTimer = 0.0f;
+
+    score = 0;
 
 }
 
@@ -60,7 +64,7 @@ void MainGameState::update(float deltaTime)
 
         float startX = static_cast<float>(GetScreenWidth());
 
-        Rectangle topPipe = {
+        Rectangle topPipe =   {
             startX,
             -static_cast<float>(pipe_y_offset_top),
             static_cast<float>(PIPE_W),
@@ -77,44 +81,47 @@ void MainGameState::update(float deltaTime)
 
         //Inserta tu nuevo objeto en la cola.
         pipes.push_back(PipePair{topPipe, botPipe, false});
+    }
 
-        //mover tuberias en cola
-        for (size_t i = 0; i < pipes.size(); i++) {
-            pipes[i].top.x -= PIPE_SPEED * deltaTime;
-            pipes[i].bot.x -= PIPE_SPEED * deltaTime;
-        }
+    //mover tuberias en cola
+    for(size_t i = 0; i < pipes.size(); i++) {
+        pipes[i].top.x -= PIPE_SPEED * deltaTime;
+        pipes[i].bot.x -= PIPE_SPEED * deltaTime;
+    }
 
-        //eliminar si está fuera de los limites
-        while (!pipes.empty() && (pipes.front().top.x + PIPE_W) < 0.0f) 
-            pipes.pop_front();
+    //eliminar si está fuera de los limites
+    while(!pipes.empty() && (pipes.front().top.x + PIPE_W) < 0.0f) 
+        pipes.pop_front();
 
-        // Ej.3: colisiones y límites
-        const float BIRD_RADIUS = 17.0f;
-        Rectangle playerBB = {
-            player.x - BIRD_RADIUS,
-            player.y - BIRD_RADIUS,
-            BIRD_RADIUS,
-            BIRD_RADIUS
-        };
+    // Ej.3: colisiones y límites
+    const float BIRD_RADIUS = 17.0f;
+    Rectangle playerBB = {
+        player.x - BIRD_RADIUS,
+        player.y - BIRD_RADIUS,
+        BIRD_RADIUS,
+        BIRD_RADIUS
+    };
 
-        // Salirse de la pantalla
-        if (player.x - BIRD_RADIUS < 0.0f ||
-            player.x + BIRD_RADIUS > GetScreenWidth() ||
-            player.y - BIRD_RADIUS < 0.0f ||
-            player.y + BIRD_RADIUS > GetScreenHeight())
-        {
-            this->state_machine->add_state(std::make_unique<GameOverState>(), true);
+    // Salirse de la pantalla
+    if(player.x - BIRD_RADIUS < 0.0f || player.x + BIRD_RADIUS > GetScreenWidth() ||
+        player.y - BIRD_RADIUS < 0.0f || player.y + BIRD_RADIUS > GetScreenHeight()) {
+        this->state_machine->add_state(std::make_unique<GameOverState>(score), true);
+        return;
+    }
+
+    // Choque con cualquier tubería 
+    for(size_t i = 0; i < pipes.size(); i++) {
+        if (CheckCollisionRecs(playerBB, pipes[i].top) ||
+            CheckCollisionRecs(playerBB, pipes[i].bot)) {
+            this->state_machine->add_state(std::make_unique<GameOverState>(score), true);
             return;
         }
+    
 
-        // Choque con cualquier tubería 
-        for (size_t i = 0; i < pipes.size(); i++) {
-            if (CheckCollisionRecs(playerBB, pipes[i].top) ||
-                CheckCollisionRecs(playerBB, pipes[i].bot))
-            {
-                this->state_machine->add_state(std::make_unique<GameOverState>(), true);
-                return;
-            }
+        // ej4 puntuacion
+        if(!pipes[i].scored && (pipes[i].top.x + PIPE_W) < player.x) {
+            score++;
+            pipes[i].scored = true;
         }
 
     }
@@ -125,7 +132,7 @@ void MainGameState::render()
     BeginDrawing();
     ClearBackground(RAYWHITE);
     //ej0
-    DrawText("Bienvenido a Flappy Bird DCA", 20, 20, 20, BLACK);//EJ 0
+    DrawText("Flappy Bird DCA", 20, 20, 20, BLACK);//EJ 0
     
     
     DrawCircle((int)player.x, (int)player.y, 17.0f, RED);//EJ 1
@@ -136,6 +143,8 @@ void MainGameState::render()
         DrawRectangleRec(pipes[i].bot, GREEN);
     }
 
+    // Ej4
+    DrawText(std::to_string(score).c_str(), 250, 20, 20, BLACK);
 
     EndDrawing();
     

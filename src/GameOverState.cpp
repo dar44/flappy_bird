@@ -6,6 +6,7 @@
 extern "C" {
     #include <raylib.h>
 }
+GameOverState::GameOverState(int finalScore) : finalScore(finalScore) {}
 
 void GameOverState::handleInput()
 {
@@ -19,5 +20,10 @@ void GameOverState::render()
     BeginDrawing();
     ClearBackground(RAYWHITE);
     DrawText("Game Over", 80, 200, 32, BLACK);
+
+    std::string scoreText = "Puntuacion: " + std::to_string(finalScore);
+    DrawText(scoreText.c_str(), 60, 260, 20, BLACK);
+
+
     EndDrawing();
 }

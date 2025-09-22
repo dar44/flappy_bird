@@ -41,6 +41,9 @@ class MainGameState : public GameState
         int PIPE_W;
         int PIPE_H;
 
+        //EJ 4
+        int score;
+
 
         
 };
