@@ -21,8 +21,8 @@ void GameOverState::render()
     ClearBackground(RAYWHITE);
     DrawText("Game Over", 80, 200, 32, BLACK);
 
-    std::string scoreText = "Puntuacion: " + std::to_string(finalScore);
-    DrawText(scoreText.c_str(), 60, 260, 20, BLACK);
+    std::string scoreText = "Puntuación: " + std::to_string(finalScore);
+    DrawText(scoreText.c_str(), 80, 260, 20, BLACK);
 
 
     EndDrawing();

@@ -16,8 +16,8 @@ class MainGameState : public GameState
         void update(float deltaTime) override;
         void render() override;
 
-        void pause(){};
-        void resume(){};
+        void pause() override{};
+        void resume() override{};
 
     
     private:
@@ -51,4 +51,10 @@ class MainGameState : public GameState
         //EJ 5 SPRTES
         Texture2D birdSprite;
         Texture2D pipeSprite;
+
+        //extras
+        Sound     sndFlap;
+        Sound     sndPoint;
+        Sound     sndHit;
+        Texture2D digitTex[10];
 };

@@ -5,6 +5,7 @@ extern "C" {
 }
 #include <StateMachine.hpp> 
 #include <GameOverState.hpp>
+#include <string> //para digitos
 
 MainGameState::MainGameState()
 {
@@ -45,6 +46,16 @@ void MainGameState::init()
 
     pipeGap = player.height * 4.5f; 
 
+    // Extras: sonidos (ajusta rutas según tus ficheros en assets/)
+    sndFlap  = LoadSound("assets/wing.wav");
+    sndPoint = LoadSound("assets/point.wav");
+    sndHit   = LoadSound("assets/hit.wav");
+
+    // digitos como sprites
+    for (int d = 0; d < 10; ++d) {
+        std::string path = "assets/" + std::to_string(d) + ".png";
+        digitTex[d] = LoadTexture(path.c_str());
+    }
     //EJ2
     pipes.clear();
     spawnTimer = 0.0f;
@@ -58,7 +69,7 @@ void MainGameState::handleInput()
     if(IsKeyPressed(KEY_SPACE)) {
         player.vy += -300.f;
         entered_key = ' ';
-
+        PlaySound(sndFlap);
     }
 
 }
@@ -127,14 +138,18 @@ void MainGameState::update(float deltaTime)
 
     if(player.x - player.width /2.0f < 0.0f || player.x + player.width /2.0f > GetScreenWidth() ||
         player.y - player.height/2.0f < 0.0f ||player.y + player.height/2.0f > GetScreenHeight()) {
+        //golpe
+        PlaySound(sndHit);
         this->state_machine->add_state(std::make_unique<GameOverState>(score), true);
         return;
     }
 
     // Choque con cualquier tubería 
     for(size_t i = 0; i < pipes.size(); i++) {
-        if (CheckCollisionRecs(playerBB, pipes[i].top) ||
+        if(CheckCollisionRecs(playerBB, pipes[i].top) ||
             CheckCollisionRecs(playerBB, pipes[i].bot)) {
+            //golpe
+            PlaySound(sndHit);
             this->state_machine->add_state(std::make_unique<GameOverState>(score), true);
             return;
         }
@@ -144,6 +159,8 @@ void MainGameState::update(float deltaTime)
         if(!pipes[i].scored && (pipes[i].top.x + PIPE_W) < player.x) {
             score++;
             pipes[i].scored = true;
+
+            PlaySound(sndPoint);
         }
 
     }
@@ -174,9 +191,16 @@ void MainGameState::render()
         DrawTextureEx(this->pipeSprite, {pipes[i].bot.x , pipes[i].bot.y}, 0.f, 1.0f, WHITE);
     }
 
-    // Ej4
+    /* Ej4
     DrawText(std::to_string(score).c_str(), 250, 20, 20, BLACK);
-
+    */
+    std::string s = std::to_string(score);
+    int x = 250, y = 20;
+    for (size_t i = 0; i < s.size(); i++) {
+    int d = s[i] - '0';
+    DrawTexture(digitTex[d], x, y, WHITE);
+    x += digitTex[d].width;
+}
     EndDrawing();
     
 
